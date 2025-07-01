@@ -69,5 +69,5 @@ Run static checks with:
 python -m py_compile $(find photoshop_underwater_plugin_bundle -name '*.py')
 pytest -q
 ```
-(No unit tests are included by default.)
+The repository includes a small pytest suite covering the processing logic and Flask endpoint.
 
