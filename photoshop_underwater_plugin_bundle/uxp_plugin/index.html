@@ -8,11 +8,18 @@
     <label>Image URL:
       <input type="text" id="imageUrl" placeholder="http://example.com/input.jpg">
     </label>
+    <label>Or Upload Image:
+      <input type="file" id="imageFile" accept="image/*">
+    </label>
     <label>Output URL:
       <input type="text" id="outputUrl" placeholder="http://example.com/output.jpg">
     </label>
     <button type="submit">Process Image</button>
   </form>
+  <div id="preview">
+    <img id="beforeImage" style="max-width:45%;margin-right:5%" />
+    <img id="afterImage" style="max-width:45%" />
+  </div>
   <div id="result"></div>
   <script src="index.js"></script>
 </body>
