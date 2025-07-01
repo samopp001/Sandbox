@@ -2,6 +2,8 @@
 
 import os
 
+from advanced_sea_thru import apply_advanced_sea_thru
+
 _cv2 = None
 _np = None
 
@@ -29,8 +31,17 @@ def estimate_beta(depth_map, img):
     return _np.array(beta, dtype=_np.float32)
 
 
-def apply_sea_thru(image_path: str, depth_map) -> str:
-    """Return path to a color corrected image using a depth-aware model."""
+def apply_sea_thru(image_path: str, depth_map, *, advanced: bool = False) -> str:
+    """Return path to a color corrected image using a depth-aware model.
+
+    When ``advanced`` is ``True``, this function runs a simplified
+    version of the full Sea-Thru atmospheric model with spatially varying
+    illuminant and dual-β backscatter recovery. The basic mode retains the
+    original lightweight implementation.
+    """
+    if advanced:
+        return apply_advanced_sea_thru(image_path, depth_map)
+
     _lazy_imports()
     img = _cv2.imread(image_path)
     if img is None:
