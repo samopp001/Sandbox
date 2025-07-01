@@ -1,6 +1,6 @@
 # Underwater AI Photo Correction
 
-This project provides a sample Photoshop UXP plugin and a Python backend for automatically enhancing underwater images. The backend uses MiDaS depth estimation, OpenCV analysis, and the Adobe Photoshop API to submit color correction jobs.
+This project provides a sample Photoshop UXP plugin and a Python backend for automatically enhancing underwater images. The backend uses MiDaS depth estimation, a simplified implementation of the [Sea‑Thru](https://github.com/hainh/sea-thru) algorithm for initial color restoration, OpenCV analysis, and the Adobe Photoshop API to submit color correction jobs.
 
 ## Contents
 - `photoshop_underwater_plugin_bundle/flask_api/` – Python service handling image analysis and Photoshop API calls
@@ -54,7 +54,7 @@ This project provides a sample Photoshop UXP plugin and a Python backend for aut
 1. In the panel, either paste an **Image URL** or use **Upload Image** to choose a local file.
 2. Provide the **Output URL** (e.g., an S3 location where the processed image should be written).
 3. Click **Process Image**. The plugin sends the file or URL to the Flask backend.
-4. The backend performs depth estimation and image analysis, then submits a Photoshop API job with color‑correction actions.
+4. The backend performs depth estimation, applies the Sea‑Thru correction to reduce color cast, analyzes the corrected image, and then submits a Photoshop API job with additional color‑correction actions.
 5. When complete, the plugin displays the before and after images for comparison (the output image is loaded from the provided URL).
 
 ## Notes for New Users

@@ -4,6 +4,7 @@ import requests
 from depth_estimation import estimate_depth
 from image_analysis import analyze_image
 from photoshop_api import submit_photoshop_job
+from sea_thru import apply_sea_thru
 
 def download_image(url, local_path):
     response = requests.get(url)
@@ -23,14 +24,15 @@ def process_image(image_url: str = None, output_url: str = None, image_file=None
         download_image(image_url, local_path)
 
     depth_metrics = estimate_depth(local_path)
-    analysis = analyze_image(local_path)
+    corrected_path = apply_sea_thru(local_path, depth_metrics['average_depth'])
+    analysis = analyze_image(corrected_path)
 
     adjustments = {
         'depth': depth_metrics,
         'analysis': analysis,
     }
 
-    submit_photoshop_job(local_path, output_url, adjustments)
+    submit_photoshop_job(corrected_path, output_url, adjustments)
 
     return {
         'status': 'submitted',

@@ -23,6 +23,10 @@ def _patch_defaults():
             return_value={'average_depth': 1.0},
         ),
         patch(
+            'main.apply_sea_thru',
+            side_effect=lambda path, d: path,
+        ),
+        patch(
             'main.analyze_image',
             return_value={'brightness': 0.5, 'contrast': 0.1, 'avg_red': 50},
         ),
