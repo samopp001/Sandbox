@@ -24,7 +24,7 @@ def _patch_defaults():
         ),
         patch(
             'main.apply_sea_thru',
-            side_effect=lambda path, d: path,
+            side_effect=lambda path, d, **_: path,
         ),
         patch(
             'main.analyze_image',

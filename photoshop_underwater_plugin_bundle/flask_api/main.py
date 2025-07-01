@@ -24,7 +24,8 @@ def process_image(image_url: str = None, output_url: str = None, image_file=None
         download_image(image_url, local_path)
 
     depth_metrics = estimate_depth(local_path)
-    corrected_path = apply_sea_thru(local_path, depth_metrics['depth_map'])
+    use_adv = bool(os.environ.get('ADVANCED_SEATHRU'))
+    corrected_path = apply_sea_thru(local_path, depth_metrics['depth_map'], advanced=use_adv)
     analysis = analyze_image(corrected_path)
 
     adjustments = {
