@@ -20,7 +20,7 @@ def _patch_defaults():
     with (
         patch(
             'main.estimate_depth',
-            return_value={'average_depth': 1.0},
+            return_value={'average_depth': 1.0, 'depth_map': [[1.0]]},
         ),
         patch(
             'main.apply_sea_thru',

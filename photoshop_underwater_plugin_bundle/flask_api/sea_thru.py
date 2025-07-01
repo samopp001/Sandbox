@@ -16,17 +16,29 @@ def _lazy_imports():
         _np = np
 
 
-def apply_sea_thru(image_path: str, average_depth: float) -> str:
-    """Return path to a color corrected image using a basic Sea-Thru style model."""
+def estimate_beta(depth_map, img):
+    """Estimate per-channel beta from depth/intensity relationship."""
+    _lazy_imports()
+    depth = depth_map.flatten().astype(_np.float32)
+    colors = img.reshape(-1, 3).astype(_np.float32) + 1e-6
+    beta = []
+    for c in range(3):
+        y = _np.log(colors[:, c])
+        slope, _ = _np.polyfit(depth, y, 1)
+        beta.append(max(-slope, 0.0))
+    return _np.array(beta, dtype=_np.float32)
+
+
+def apply_sea_thru(image_path: str, depth_map) -> str:
+    """Return path to a color corrected image using a depth-aware model."""
     _lazy_imports()
     img = _cv2.imread(image_path)
     if img is None:
         raise FileNotFoundError(f"Could not read {image_path}")
 
-    # Simple depth based attenuation compensation
-    beta = _np.array([0.03, 0.02, 0.01])
-    scale = _np.exp(beta * average_depth)
-    corrected = img.astype(_np.float32) * scale
+    beta = estimate_beta(depth_map, img)
+    scale_map = _np.exp(depth_map[..., None] * beta[None, None, :])
+    corrected = img.astype(_np.float32) * scale_map
     corrected = _np.clip(corrected, 0, 255).astype(_np.uint8)
 
     out_path = os.path.splitext(image_path)[0] + "_seathru.jpg"

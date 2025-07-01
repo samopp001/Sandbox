@@ -38,7 +38,7 @@ def load_model():
 
 
 def estimate_depth(image_path: str):
-    """Estimate average depth for the given image."""
+    """Estimate depth map and average depth using MiDaS."""
     _lazy_imports()
     model = load_model()
     device = next(model.parameters()).device
@@ -61,4 +61,5 @@ def estimate_depth(image_path: str):
     avg_depth = float(_np.mean(depth_map))
     return {
         'average_depth': avg_depth,
+        'depth_map': depth_map,
     }
