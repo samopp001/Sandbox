@@ -1,0 +1,18 @@
+{
+  "name": "Underwater AI Correction",
+  "id": "com.example.underwater",
+  "version": "1.0.0",
+  "main": "index.js",
+  "host": {
+    "app": "PS",
+    "minVersion": "22.0.0"
+  },
+  "uiEntryPoints": [
+    {
+      "type": "panel",
+      "panelId": "underwaterPanel",
+      "label": "Underwater AI Correction",
+      "menu": { "label": "Underwater AI Correction" }
+    }
+  ]
+}
