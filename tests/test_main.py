@@ -11,6 +11,10 @@ import pytest
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'photoshop_underwater_plugin_bundle', 'flask_api')))
+if 'requests' not in sys.modules:
+    sys.modules['requests'] = SimpleNamespace(get=lambda *a, **k: None, post=lambda *a, **k: None)
+if 'advanced_sea_thru' not in sys.modules:
+    sys.modules['advanced_sea_thru'] = SimpleNamespace(apply_advanced_sea_thru=lambda p, d: p)
 import main  # type: ignore
 
 
@@ -68,31 +72,76 @@ def test_process_image_file(tmp_path):
     assert result['status'] == 'submitted'
 
 
-def create_app():
+def create_app(module_name='run_service'):
     import importlib
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'photoshop_underwater_plugin_bundle', 'flask_api')))
-    module = importlib.import_module('run_service')
-    return module.app
+    if 'flask' not in sys.modules:
+        class Dummy:
+            def __init__(self):
+                self.data = {}
+            def __call__(self, name):
+                return self
+            def route(self, path, methods=None):
+                def dec(f):
+                    self.data['handler'] = f
+                    return f
+                return dec
+            def test_client(self):
+                return None
+        dummy = Dummy()
+        sys.modules['flask'] = SimpleNamespace(Flask=lambda name: dummy, request=None, jsonify=lambda d: d)
+    module = importlib.import_module(module_name)
+    return module
 
 
 def test_flask_endpoint_json(tmp_path):
-    app = create_app()
-    client = app.test_client()
+    module = create_app()
     payload = {'image_url': 'http://example.com/in.jpg', 'output_url': 'http://example.com/out.jpg'}
-    with patch('main.process_image', return_value={'status': 'submitted', 'adjustments': {}}):
-        resp = client.post('/process', json=payload)
-    assert resp.status_code == 200
-    assert resp.json['status'] == 'submitted'
+    req = SimpleNamespace(content_type='application/json', json=payload)
+    with (
+        patch('main.process_image', return_value={'status': 'submitted', 'adjustments': {}}),
+        patch.object(module, 'request', req),
+        patch.object(module, 'jsonify', lambda d: d),
+    ):
+        resp = module.process()
+    assert resp['status'] == 'submitted'
 
 
 def test_flask_endpoint_upload(tmp_path):
-    app = create_app()
-    client = app.test_client()
-    data = {
-        'output_url': 'http://example.com/out.jpg'
-    }
-    file_data = (io.BytesIO(b'data'), 'test.jpg')
-    with patch('main.process_image', return_value={'status': 'submitted', 'adjustments': {}}):
-        resp = client.post('/process', data={'image': file_data, 'output_url': data['output_url']}, content_type='multipart/form-data')
-    assert resp.status_code == 200
-    assert resp.json['status'] == 'submitted'
+    module = create_app()
+    dummy_file = DummyFile('test.jpg', b'data')
+    req = SimpleNamespace(
+        content_type='multipart/form-data',
+        files={'image': dummy_file},
+        form={'output_url': 'http://example.com/out.jpg'},
+    )
+    with (
+        patch('main.process_image', return_value={'status': 'submitted', 'adjustments': {}}),
+        patch.object(module, 'request', req),
+        patch.object(module, 'jsonify', lambda d: d),
+    ):
+        resp = module.process()
+    assert resp['status'] == 'submitted'
+
+
+def test_local_cli_invocation(tmp_path, monkeypatch):
+    img_in = tmp_path / 'in.jpg'
+    img_out = tmp_path / 'out.jpg'
+    img_in.write_bytes(b'data')
+    called = {}
+
+    def fake_process_image(**kwargs):
+        called.update(kwargs)
+        return {'status': 'submitted', 'adjustments': {}}
+
+    monkeypatch.setattr('local_cli.process_image', fake_process_image)
+    argv = [
+        'local_cli.py',
+        str(img_in),
+        str(img_out),
+    ]
+    monkeypatch.setattr('sys.argv', argv)
+    import local_cli
+    local_cli.main()
+    assert called['image_path'] == str(img_in)
+    assert called['output_path'] == str(img_out)

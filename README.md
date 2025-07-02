@@ -45,6 +45,17 @@ This project provides a sample Photoshop UXP plugin and a Python backend for aut
    ```
    The server listens on `http://localhost:5000/process`.
 
+### Local Command-Line Usage
+To run the correction entirely offline on a local image, use the provided CLI:
+
+```bash
+python photoshop_underwater_plugin_bundle/flask_api/local_cli.py input.jpg output.jpg
+```
+
+Add `--advanced` to enable the more advanced Sea‑Thru model. This mode does not
+contact the Photoshop API and simply writes the corrected file to the specified
+output path.
+
 ## UXP Plugin Setup
 1. Install the [UXP Developer Tool](https://developer.adobe.com/photoshop/uxp/guides/uxp-developer-tools/).
 2. In the tool, click **Add Plugin** and select the `photoshop_underwater_plugin_bundle/uxp_plugin` folder.
